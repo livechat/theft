@@ -17,6 +17,7 @@ func main() {
 	defer logger.Close()
 	go goroutines()
 
+	http.HandleFunc("/alive", alive)
 	http.HandleFunc("/inspector/ws", handshake)
 	http.HandleFunc("/hijacker/ws", handshake)
 	http.HandleFunc("/hijacker/static", serveHijacker)
@@ -48,4 +49,9 @@ func goroutines() {
 	logger.Debug("GOROUTINES", runtime.NumGoroutine())
 	time.Sleep(5 * time.Second)
 	goroutines()
+}
+
+func alive(w http.ResponseWriter, r *http.Request){
+	w.WriteHeader(200)
+	w.Write([]byte{})
 }
