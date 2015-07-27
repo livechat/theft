@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en" data-framework="angularjs">
+	<head>
+		<script src="bower_components/angular/angular.js"></script>
+		<script src="bower_components/ng-websocket/ng-websocket.js"></script>
+				<script src="js/controller.js"></script>
+		<meta charset="utf-8">
+		<title>Browser • Inspector</title>
+
+		<style>
+			* {
+				padding: 0px;
+				margin: 0px;
+				font-family: Menlo, monospace;
+				font-size: 12px;
+				outline: 0;
+			}
+
+			html, body {
+				height: 100%;
+			}
+
+			#logs {
+				width: 100%;
+				border-collapse: collapse;
+				border-spacing: 0;
+			}
+
+			#logs td {
+				font-size: 12px;
+			}
+			#logs td {
+				border-bottom:1px solid #ddd;
+				padding: 5px;
+			}
+			#logs .prompt {
+				width: 10px;
+				font-weight: bold;
+				vertical-align: top;
+				border-bottom: none;
+			}
+
+			#clients {
+				width: 100%;
+				border-collapse: collapse;
+				border-spacing: 0;
+			}
+
+			#clients th {
+				border-bottom:1px solid #ddd;
+				height: 30px;
+				text-align: left;
+				padding-left: 5px;
+			}
+			
+			#clients td {
+				padding: 5px;
+				font-size: 11px;
+				min-width: 50px;
+				text-align: left;
+			}
+
+			#clients tr {
+				cursor: pointer;
+			}
+
+			#clients .selected {
+				background-color: #ddd;
+			}
+
+			.scrollable {
+				overflow-y:scroll;
+				height: calc(100% - 31px);
+			}
+
+			.nav {
+				width: 50%;
+				box-sizing: border-box;
+				height: 100%;
+			}
+
+			.float-left {
+				float: left;
+			}
+
+			.float-right {
+				float: right;
+				border-left: 1px solid #ddd;
+			}
+
+			#log {
+				border-bottom: 1px solid #ddd;
+				height: 30px;
+				font-weight: bold;
+			}
+
+			#log input[type=textfield] {
+				height: 20px;
+				margin: 4px;
+				margin-left: 8px;
+				border: 1px solid #aaa;
+				padding-left: 3px;
+			}
+
+			#log button {
+				height: 23px;
+				width: 60px;
+				margin-left: 4px;
+				background-color: #fff;
+				border: 1px solid #aaa;
+			}
+
+			#batch-command {
+				height: 20px;
+				margin: 4px;
+				margin-left: 8px;
+				border: 1px solid #aaa;
+				padding-left: 3px;
+			}
+
+			.notice {
+				color: #F9D472;
+			}
+
+		</style>
+	</head>
+	<body ng-app="Hijacker" ng-controller="HijackerController">
+		<div class="nav float-left">
+				<table id="clients">
+					<tr>
+						<th> session </th>
+						<th> delay </th>
+						<th> browser </th>
+						<th> location </th>
+						<th>
+							<input id="batch-command" placeholder="custom" ng-model="command.batch.cmd" ng-keyup="$event.keyCode == 13 && command.batch.apply()"> </input>
+						</th>
+					</tr>
+					<tr ng-repeat="hijacker in hijackers" ng-click="capture($index)" ng-class="{selected: hijacker.session == captured}"><td>{{hijacker.session}}</td> <td> {{hijacker.delay | microping}}</td> <td> {{hijacker.browser | userAgent:'browser'}} </td> <td>{{hijacker.location}}</td> <td>  </td> </tr>
+				</table>
+		</div>
+		<div class="nav float-right">
+			<div id="log" class="container"> 
+				<input type="textfield" placeholder="filter" ng-model="logs.filter.text" ng-change="logs.filter.apply()"></input>
+				<input type="checkbox" ng-model="logs.filter.regexp"></input> regexp 
+				<button ng-click="logs.clear()"> clear </button>
+			</div>
+			<div class="scrollable">
+				<table id="logs">
+					<tr ng-repeat="log in logs.filtered track by $index"><td class="prompt"> > </td> <td ng-class="{notice: log.type == 'notice'}"> {{log.text}}</td></tr>
+				</table>
+			</div>
+		<div>
+	</body>
+</html>
