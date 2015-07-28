@@ -1,11 +1,12 @@
 package main
 
 import (
-	"io/ioutil"
+	// "io/ioutil"
 	"log"
 	"net/http"
 	"time"
 	"runtime"
+	"html/template"
 )
 
 var logger *Logger
@@ -25,24 +26,28 @@ func main() {
 	fs := http.FileServer(http.Dir("frontend"))
 	http.Handle("/inspector/", http.StripPrefix("/inspector/", fs))
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(*settings.port, nil)
 	if err != nil {
 		log.Fatal("ERROR::", err)
 	}
 }
 
 func serveHijacker(w http.ResponseWriter, r *http.Request){
-	bytes, err := ioutil.ReadFile("./hijack/hijack.js")
-	if err != nil {
- 			w.WriteHeader(404)
- 			w.Write([]byte{})
- 			return
-    }
-
+	template, _ := template.ParseFiles("./hijack/hijack.js")
 	w.Header().Set("Content-type", "application/javascript")
+	url := ""
 
-	w.WriteHeader(200)
-	w.Write(bytes)
+	if *settings.secure {
+		url += "wss://"
+	}else{
+		url += "ws://"
+	}
+
+	url += *settings.domain
+	url += *settings.port
+	url += "/hijacker/ws"
+
+	template.Execute(w, map[string] string {"url": url})
 }
 
 func goroutines() {

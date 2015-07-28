@@ -7,7 +7,7 @@ app.config(['$logProvider', function($logProvider){
 }])
 
 app.factory('dataAccess', function($websocket){
-	var ws = $websocket.$new({url:'ws://localhost:8080/inspector/ws', reconnect:true, protocols: []})
+	var ws = $websocket.$new({url:'/inspector/ws', reconnect:true, protocols: []})
 
 	return {
 		websocket: ws

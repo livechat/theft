@@ -18,7 +18,7 @@ __hijack = function(){
 
 	var run = function(){
 		timeout_id = 0;
-		var ws = new WebSocket("ws://localhost:8080/hijacker/ws");
+		var ws = new WebSocket("{{.url}}");
 
 		ws.onopen = function(){
 			if (!console._log){
