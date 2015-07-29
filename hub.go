@@ -69,8 +69,12 @@ func (self *Hub) getEndpointsByKind(kind int64) []*Endpoint {
 func (self *Hub) broadcast (from int64, raw []byte){
 	self.RLock()
 	defer self.RUnlock()
+	endpoint := self.endpoints[from]
+	if endpoint == nil {
+		return 
+	}
 
-	kind := self.endpoints[from].GetKind()
+	kind := endpoint.GetKind()
 
 	for _, endpoint := range self.endpoints {
 		if endpoint.GetKind() != kind {
@@ -82,6 +86,11 @@ func (self *Hub) broadcast (from int64, raw []byte){
 func (self *Hub) send (from int64, to int64, raw []byte) {
 	self.RLock()
 	defer self.RUnlock()
+
+	endpoint := self.endpoints[to]
+	if endpoint == nil {
+		return
+	}
 
 	self.endpoints[to].Send(raw)
 }

@@ -34,7 +34,7 @@ func (self *Client) Send(raw []byte) {
 }
 
 func NewClient(conn *Connection, kind int64) (*Client) {
-	id := rand.Int63()
+	id := rand.Int63() / 1000
 	client := Client{id, conn, kind} 
 
 	return &client

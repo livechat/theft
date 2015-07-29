@@ -33,7 +33,7 @@ __hijack = function(){
 				if (ws.readyState === 1){
 
 					while (buffer.length){
-						JSON.stringify({event: "log", data:{session: session, log: JSON.stringify(buffer.shift())}});
+						ws.send(JSON.stringify({event: "log", data:{session: session, log: JSON.stringify(buffer.shift())}}));
 					}
 
 					ws.send(JSON.stringify({event: "log", data:{session: session, log: JSON.stringify(arguments)}}));
@@ -49,7 +49,17 @@ __hijack = function(){
 
 				switch (frame.event) {
 					case 'command':
-						console.log(command(frame.data.cmd));
+						var output = command(frame.data.cmd);
+
+						if (frame.data.echo){
+							console.log(frame.data.cmd);
+							console.log(output);
+						}else{
+							frame.data.hijacker_id = session;
+							frame.data.response = output;
+							ws.send(JSON.stringify({event:"command", data: frame.data}))
+						}
+
 						break;
 				}
 			};

@@ -1,12 +1,10 @@
 package main
 
 import (
-	// "io/ioutil"
 	"log"
 	"net/http"
 	"time"
 	"runtime"
-	"html/template"
 )
 
 var logger *Logger
@@ -21,7 +19,7 @@ func main() {
 	http.HandleFunc("/alive", alive)
 	http.HandleFunc("/inspector/ws", handshake)
 	http.HandleFunc("/hijacker/ws", handshake)
-	http.HandleFunc("/hijacker/static", serveHijacker)
+	http.HandleFunc("/hijacker/static", serveHijackerClient)
 
 	fs := http.FileServer(http.Dir("frontend"))
 	http.Handle("/inspector/", http.StripPrefix("/inspector/", fs))
@@ -30,24 +28,6 @@ func main() {
 	if err != nil {
 		log.Fatal("ERROR::", err)
 	}
-}
-
-func serveHijacker(w http.ResponseWriter, r *http.Request){
-	template, _ := template.ParseFiles("./hijack/hijack.js")
-	w.Header().Set("Content-type", "application/javascript")
-	url := ""
-
-	if *settings.secure {
-		url += "wss://"
-	}else{
-		url += "ws://"
-	}
-
-	url += *settings.domain
-	url += *settings.port
-	url += "/hijacker/ws"
-
-	template.Execute(w, map[string] string {"url": url})
 }
 
 func goroutines() {

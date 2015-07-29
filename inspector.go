@@ -75,13 +75,19 @@ func (self *Inspector) protocol (raw []byte){
 			self.inspected = (*endpoint).GetId()
 			(*endpoint).(*Hijacker).registerListener(self.id)
 
-		// case "command":
-		// 	command := JsonCommand{}
-		// 	frame.GetData(&command)
+		case "command":
+			command := JsonCommand{}
+			frame.GetData(&command)
+			command.InspectorId = self.id
 
-		// 	// if command.Batch {
-		// 	// 	hub.
-		// 	// }
+			frame.SetData(command)
+			if command.Batch {
+				hub.broadcast(self.id, frame.GetRaw())
+			}else if (self.inspected != -1){
+				hub.send(self.id, self.inspected, frame.GetRaw())
+			}
+
+			
 
 		default:
 			logger.Error("INSPECTOR", "::PROTOCOL", "missing command", frame.Event)

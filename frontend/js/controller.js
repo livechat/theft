@@ -7,7 +7,8 @@ app.config(['$logProvider', function($logProvider){
 }])
 
 app.factory('dataAccess', function($websocket){
-	var ws = $websocket.$new({url:'/inspector/ws', reconnect:true, protocols: []})
+	let protocol = window.location.protocol == 'http:' ? 'ws://' : 'wss://';
+	var ws = $websocket.$new({url: `${protocol}${window.location.host}/inspector/ws`, reconnect:true, protocols: []})
 
 	return {
 		websocket: ws
@@ -82,8 +83,28 @@ app.controller('HijackerController', function HijackerCtrl($scope, dataAccess, $
 	}
 
 	$scope.command.batch.apply = function(){
-		dataAccess.websocket.$emit('command', {cmd: $scope.command.batch.cmd, echo: false, batch: true});
+		$scope.command.batch.id = parseInt(Math.random() * 10E9, 10)
+		dataAccess.websocket.$emit('command', {cmd: $scope.command.batch.cmd, echo: false, batch: true, id: $scope.command.batch.id});
 	}
+
+	$scope.command.apply = function(){
+		$scope.command.id = parseInt(Math.random() * 10E9, 10)
+		dataAccess.websocket.$emit('command', {cmd: $scope.command.cmd, echo: true, batch: false, id: $scope.command.id});
+		$scope.command.cmd = '';
+	}
+
+	dataAccess.websocket.$on("command", function(data){
+		if (data.batch && $scope.command.batch.id === data.id){
+			for (var i = 0; i < $scope.hijackers.length; i++ ){
+				if ($scope.hijackers[i].session == data.hijacker_id) {
+					$scope.hijackers[i].response = data.response;
+					break;
+				}
+			}
+		}
+
+		$scope.$apply();
+	});
 
 	$scope.capture = function(index){
 		if ($scope.shouldRecapture){
@@ -174,19 +195,37 @@ app.filter('userAgent', function(){
 	return function(input, modifier){
 		switch (modifier){
 			case 'browser':
+				// return input
+				if (/OPR\/|Opera\//.test(input)){ return "Opera" }
 				if (/Chrome\//.test(input)){ return "Chrome" }
 				if (/Firefox\//.test(input)){ return "Firefox" }
 				if (/Chromium\//.test(input)){ return "Chromium" }
 				if (/Safari\//.test(input)){ return "Safari" }
-				if (/;MSIE/.test(input)){ return "Internet Explorer" }
-				if (/OPR\/|Opera\//.test(input)){ return "Opera" }
-				return ""
-			
+				if (/; ?MSIE/.test(input)){ return "Explorer" }
+				return input
+
+				break;
+
 			case 'version':
-				return ""
+				var match = input.match(/(Opr|Opera)\/([0-9\.]+)+/g)
+				if (match){ return match[0].split("/")[1] }
+
+				var match = input.match(/Chrome\/([0-9\.]+)+/g)
+				if (match){ return match[0].split("/")[1] }
+
+				var match = input.match(/Firefox\/([0-9\.]+)+/g)
+				if (match){ return match[0].split("/")[1] }
+
+				var match = input.match(/Safari\/([0-9\.]+)+/g)
+				if (match){ return match[0].split("/")[1] }
+
+				var match = input.match(/; ?MSIE ([0-9\.]+)+/g)
+				if (match){ return match[0].split("MSIE ")[1] }
+
+				break;
 
 			case 'os':
-				return ""
+				break;
 
 			case 'mobile':
 				if (/Mobi/.test(input)){
@@ -197,6 +236,8 @@ app.filter('userAgent', function(){
 			default:
 				return input
 		}
+
+	return ""
 
 	}
 });

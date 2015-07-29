@@ -1,8 +1,10 @@
 package main
 
 import (
+	"net/http"
 	"time"
 	"sync"
+	"text/template"
 )
 
 type Hijacker struct {
@@ -106,9 +108,39 @@ func (self *Hijacker) protocol (raw []byte){
 			for listener, _ := range(self.listeners){
 				hub.send(self.id, listener, frame.GetRaw())
 			}
-			
+
+		case "command":
+			command := JsonCommand{}
+			frame.GetData(&command)
+			hub.send(self.id, command.InspectorId, raw)
+
 		default:
 			logger.Error("HIJACKER", "::PROTOCOL", "missing command", frame.Event)
 
 	}
+}
+
+func serveHijackerClient(w http.ResponseWriter, r *http.Request){
+	template, err := template.ParseFiles("./hijack/hijack.js")
+
+	if err != nil {
+		w.WriteHeader(404)
+		w.Write([]byte{})
+		return
+	}
+
+	w.Header().Set("Content-type", "application/javascript")
+
+	url := ""
+	if *settings.secure {
+		url += "wss://"
+	}else{
+		url += "ws://"
+	}
+
+	url += *settings.domain
+	url += *settings.port
+	url += "/hijacker/ws"
+
+	template.Execute(w, map[string] string {"url": url})
 }

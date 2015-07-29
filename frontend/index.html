@@ -136,7 +136,13 @@
 							<input id="batch-command" placeholder="custom" ng-model="command.batch.cmd" ng-keyup="$event.keyCode == 13 && command.batch.apply()"> </input>
 						</th>
 					</tr>
-					<tr ng-repeat="hijacker in hijackers" ng-click="capture($index)" ng-class="{selected: hijacker.session == captured}"><td>{{hijacker.session}}</td> <td> {{hijacker.delay | microping}}</td> <td> {{hijacker.browser | userAgent:'browser'}} </td> <td>{{hijacker.location}}</td> <td>  </td> </tr>
+					<tr ng-repeat="hijacker in hijackers" ng-click="capture($index)" ng-class="{selected: hijacker.session == captured}">
+						<td>{{hijacker.session}}</td>
+						<td> {{hijacker.delay | microping}}</td>
+						<td> {{hijacker.browser | userAgent:'browser'}} {{hijacker.browser | userAgent:'version'}} </td>
+						<td>{{hijacker.location}}</td>
+						<td> {{hijacker.response}} </td> 
+					</tr>
 				</table>
 		</div>
 		<div class="nav float-right">
@@ -148,6 +154,7 @@
 			<div class="scrollable">
 				<table id="logs">
 					<tr ng-repeat="log in logs.filtered track by $index"><td class="prompt"> > </td> <td ng-class="{notice: log.type == 'notice'}"> {{log.text}}</td></tr>
+					<tr> <td class="prompt"> > </td> <td style="border:none;"> <input ng-model="command.cmd" ng-keyup="$event.keyCode == 13 && command.apply()" style="border:none;"></input> </td> </tr>
 				</table>
 			</div>
 		<div>
