@@ -18,7 +18,12 @@ __hijack = function(){
 
 	var run = function(){
 		timeout_id = 0;
-		var ws = new WebSocket("{{.url}}");
+
+		try {
+			var ws = new WebSocket("{{.url}}");
+		}catch(e){
+			return;
+		}
 
 		ws.onopen = function(){
 			if (!console._log){
