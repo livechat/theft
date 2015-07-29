@@ -139,7 +139,11 @@ func serveHijackerClient(w http.ResponseWriter, r *http.Request){
 	}
 
 	url += *settings.domain
-	url += *settings.port
+
+	if ! *settings.secure {
+		url += *settings.port
+	}
+
 	url += "/hijacker/ws"
 
 	template.Execute(w, map[string] string {"url": url})
