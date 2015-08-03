@@ -22,7 +22,10 @@ func main() {
 	http.HandleFunc("/hijacker/static", serveHijackerClient)
 
 	fs := http.FileServer(http.Dir("frontend"))
-	http.Handle("/inspector/", http.StripPrefix("/inspector/", fs))
+	staticFileServerHandler := http.StripPrefix("/inspector/", fs);
+	auth := Base64Authorization{&staticFileServerHandler}
+
+	http.Handle("/inspector/", auth)
 
 	err := http.ListenAndServe(*settings.port, nil)
 	if err != nil {
@@ -39,4 +42,23 @@ func goroutines() {
 func alive(w http.ResponseWriter, r *http.Request){
 	w.WriteHeader(200)
 	w.Write([]byte{})
+}
+
+type Base64Authorization struct {
+	handler *http.Handler
+}
+
+func (self Base64Authorization) ServeHTTP(w http.ResponseWriter, r *http.Request){
+	if *settings.auth != "" {
+		username, password, ok := r.BasicAuth()
+
+		if *settings.auth != username + ":" + password || ! ok {
+			w.Header().Set("WWW-Authenticate", "Basic")
+			w.WriteHeader(401)
+			w.Write([]byte{})
+			return
+		}
+	}
+
+	(*self.handler).ServeHTTP(w, r)
 }

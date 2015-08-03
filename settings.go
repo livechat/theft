@@ -10,6 +10,7 @@ type Settings struct {
 	port *string
 	domain *string
 	secure *bool
+  auth *string
 }
 
 var settings *Settings
@@ -21,5 +22,6 @@ func parseFlags() {
   settings.port = flag.String("port", ":8080", "server port")
   settings.domain = flag.String("domain", "localhost", "server domain")
   settings.secure = flag.Bool("secure", false, "use secure urls (wss, https protocols)")
+  settings.auth = flag.String("auth", "", "provide basic auth username and password")
   flag.Parse()
 }
